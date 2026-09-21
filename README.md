@@ -1,5 +1,9 @@
 # Explain_Add_All_WorkSpace
 
+## ℹ️ Sobre este repositório
+
+Notas de documentação sobre workspace.
+
 Guia em português que ensina a adicionar a opção **"Abrir com VS Code"** ao menu de contexto do Windows Explorer, acompanhado do arquivo `.reg` pronto para importar.
 
 ![Markdown](https://img.shields.io/badge/Markdown-000000?style=flat&logo=markdown&logoColor=white)
