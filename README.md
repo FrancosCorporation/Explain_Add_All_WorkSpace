@@ -38,7 +38,7 @@ Cada chave define um rótulo (`@`) e um ícone (`Icon`) e registra o comando que
 @="\"C:\\Users\\<SEU_USUARIO>\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\" \"%1\""
 ```
 
-3. Antes de substituir chaves que já existam, exporte cada chave afetada para um arquivo de backup. Ignore as chaves que ainda não existem:
+1. Antes de substituir chaves que já existam, exporte cada chave afetada para um arquivo de backup. Ignore as chaves que ainda não existem:
 
 ```powershell
 reg export "HKEY_CLASSES_ROOT\*\shell\Open with VS Code" "backup-arquivos.reg" /y
@@ -46,7 +46,7 @@ reg export "HKEY_CLASSES_ROOT\Directory\shell\vscode" "backup-pastas.reg" /y
 reg export "HKEY_CLASSES_ROOT\Directory\Background\shell\vscode" "backup-fundo.reg" /y
 ```
 
-4. Importe o arquivo: dê duplo clique nele (aceitando o aviso do Windows) ou rode no terminal:
+1. Importe o arquivo: dê duplo clique nele (aceitando o aviso do Windows) ou rode no terminal:
 
 ```powershell
 reg import "Files\vsCodeOpenFolder.reg"
@@ -54,7 +54,7 @@ reg import "Files\vsCodeOpenFolder.reg"
 
 Se o Windows negar acesso às chaves, abra o PowerShell como administrador e repita o comando.
 
-5. Confirme que as três chaves foram criadas:
+1. Confirme que as três chaves foram criadas:
 
 ```powershell
 reg query "HKEY_CLASSES_ROOT\*\shell\Open with VS Code"
