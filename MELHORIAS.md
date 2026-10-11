@@ -6,8 +6,9 @@
 ## Estado da execução — 2026-10-11
 
 - `BUG-01`, `SEC-01`, `BUG-02`, `DOC-01` e `TEST-01` implementados: fonte canônica declarada, aspas/ícones alinhados, backup e consultas de verificação documentados.
-- `DEVOPS-01`: workflow de markdownlint configurado para README e guia; a CI ainda não foi executada.
-- Não importei o `.reg` no Windows. O commit local inclui o workflow; o push precisa do escopo OAuth `workflow`.
+- `DEVOPS-01`: workflow de markdownlint configurado para README e guia; a execução `38164021930` passou no commit `45ce8e5`.
+- A execução anterior `38159560534` apontou prefixos inconsistentes na lista numerada do README; `45ce8e5` corrigiu a numeração e a execução seguinte passou.
+- Não importei o `.reg` no Windows. A validação manual das chaves do Registro continua dependente de um ambiente Windows.
 
 ## 0. Como usar este documento
 
@@ -145,6 +146,7 @@ grep -q "reg export" Add_short_vscode_windows.md && echo "OK: backup documentado
 - [x] Passo de backup (`reg export`) presente no guia antes do import — DOC-01.
 - [x] Bloco de verificação pós-import (`reg query`) no README e no guia — TEST-01.
 - [x] Workflow de markdownlint criado para `README.md` e `Add_short_vscode_windows.md` — DEVOPS-01.
-- [ ] CI e `python3 /tmp/validate.py Explain_Add_All_WorkSpace` não foram executados nesta sessão.
+- [x] CI de markdownlint passou no commit `45ce8e5` (execução `38164021930`).
+- [ ] Validação manual de importação no Windows e `python3 /tmp/validate.py Explain_Add_All_WorkSpace` permanecem pendentes; não executei testes.
 
 *Fim do plano. Gerado por leitura direta do código em 2026-10-05 — todos os fatos (arquivos, linhas, branch `master`) foram verificados no repositório; nenhum arquivo:linha foi inventado.*
