@@ -32,14 +32,37 @@ Cada chave define um rótulo (`@`) e um ícone (`Icon`) e registra o comando que
 ## Como usar
 
 1. Abra `Files/vsCodeOpenFolder.reg` em um editor de texto.
-2. **Substitua todos os caminhos** `C:\Users\Rodolfo\AppData\Local\Programs\Microsoft VS Code\Code.exe` pelo caminho do VS Code na sua máquina (o padrão costuma ser `C:\Users\<SEU_USUARIO>\AppData\Local\Programs\Microsoft VS Code\Code.exe`).
-3. Importe o arquivo: dê duplo clique nele (aceitando o aviso do Windows) ou rode no terminal:
+2. **Substitua todos os caminhos** `C:\Users\Rodolfo\AppData\Local\Programs\Microsoft VS Code\Code.exe` pelo caminho do VS Code na sua máquina. Preserve as aspas internas escapadas no valor `command`: elas mantêm o caminho com espaços como um único executável. Por exemplo:
+
+```reg
+@="\"C:\\Users\\<SEU_USUARIO>\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\" \"%1\""
+```
+
+3. Antes de substituir chaves que já existam, exporte cada chave afetada para um arquivo de backup. Ignore as chaves que ainda não existem:
+
+```powershell
+reg export "HKEY_CLASSES_ROOT\*\shell\Open with VS Code" "backup-arquivos.reg" /y
+reg export "HKEY_CLASSES_ROOT\Directory\shell\vscode" "backup-pastas.reg" /y
+reg export "HKEY_CLASSES_ROOT\Directory\Background\shell\vscode" "backup-fundo.reg" /y
+```
+
+4. Importe o arquivo: dê duplo clique nele (aceitando o aviso do Windows) ou rode no terminal:
 
 ```powershell
 reg import "Files\vsCodeOpenFolder.reg"
 ```
 
-O guia detalhado com o passo a passo (incluindo a criação manual do arquivo pelo Notepad) está em [`Add_short_vscode_windows.md`](Add_short_vscode_windows.md).
+Se o Windows negar acesso às chaves, abra o PowerShell como administrador e repita o comando.
+
+5. Confirme que as três chaves foram criadas:
+
+```powershell
+reg query "HKEY_CLASSES_ROOT\*\shell\Open with VS Code"
+reg query "HKEY_CLASSES_ROOT\Directory\shell\vscode"
+reg query "HKEY_CLASSES_ROOT\Directory\Background\shell\vscode"
+```
+
+O guia detalhado está em [`Add_short_vscode_windows.md`](Add_short_vscode_windows.md). `Files/vsCodeOpenFolder.reg` é a fonte canônica dos rótulos, ícones e comandos; o guia orienta a personalização sem duplicar o arquivo inteiro.
 
 ### Como desfazer
 
@@ -53,17 +76,17 @@ reg delete "HKEY_CLASSES_ROOT\Directory\Background\shell\vscode" /f
 
 ## Estrutura do projeto
 
-```
+```text
 .
-├── Add_short_vscode_windows.md   # guia passo a passo (com trecho do .reg)
+├── Add_short_vscode_windows.md   # caminho, backup e verificação do Registro
 └── Files/
     └── vsCodeOpenFolder.reg      # arquivo para importar no Registro do Windows
 ```
 
 ## Observações
 
-- O caminho do executável está fixado no exemplo original (`C:\Users\Rodolfo\...`) — obrigatório ajustar antes de importar.
-- O guia em markdown e o `.reg` divergem só no rótulo do menu (`😍` no guia, `:)` no arquivo); ambos podem ser personalizados.
+- O caminho do executável está fixado no exemplo (`C:\Users\Rodolfo\...`) — ajuste-o antes de importar e preserve as aspas internas escapadas do comando.
+- Os rótulos e o formato de `Icon` estão padronizados entre as três chaves do arquivo `.reg`.
 - Projetado para Windows; sem efeito em Linux/macOS.
 
 ## Licença

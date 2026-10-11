@@ -1,41 +1,57 @@
-Para adicionar ao menu do windows abrir a pasta diretamente no vs code voce precisara:
+# Adicionar o VS Code ao menu de contexto do Windows
 
-1) Abra um novo bloco de notas (notepad) e salva o documento com o nome vsCodeOpenFolder.reg e o tipo como todos os arquivos
+O arquivo [`Files/vsCodeOpenFolder.reg`](Files/vsCodeOpenFolder.reg) é a fonte canônica dos rótulos, ícones e comandos. Ele adiciona opções para abrir um arquivo, uma pasta ou o fundo da pasta no VS Code.
 
-2) Cole o seguinte script dentro desse documento em branco SUBSTITUINDO O CAMINHO PELO SEU VSCODE ! :
+> **Atenção:** importar um arquivo `.reg` altera o Registro do Windows. Revise o conteúdo e faça backup das chaves que já existirem antes de importar.
 
-Windows Registry Editor Version 5.00
-; Open files
+## 1. Ajuste o caminho do VS Code
 
-[HKEY_CLASSES_ROOT\*\shell\Open with VS Code]
-@="Abrir com Vscode 😍"
-"Icon"="C:\\Users\\Rodolfo\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe,0"
+Abra `Files/vsCodeOpenFolder.reg` em um editor de texto e substitua todas as ocorrências do caminho padrão pelo caminho de `Code.exe` instalado na sua máquina.
 
-[HKEY_CLASSES_ROOT\*\shell\Open with VS Code\command]
-@="\"C:\\Users\\Rodolfo\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\" \"%1\""
+Preserve as aspas internas escapadas na linha `command`; elas mantêm caminhos com espaços como um único executável. Por exemplo:
 
-; This will make it appear when you right click ON a folder
-; The "Icon" line can be removed if you don't want the icon to appear
+```reg
+@="\"C:\\Users\\<SEU_USUARIO>\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\" \"%1\""
+```
 
-[HKEY_CLASSES_ROOT\Directory\shell\vscode]
-@="Abrir Pasta com Vscode 😍"
-"Icon"="\"C:\\Users\\Rodolfo\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\",0"
+O arquivo também usa `%V` para abrir o fundo da pasta. Não altere `%1` nem `%V` ao substituir o caminho.
 
-[HKEY_CLASSES_ROOT\Directory\shell\vscode\command]
-@="\"C:\\Users\\Rodolfo\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\" \"%1\""
+Os valores `Icon` também usam aspas internas para o caminho com espaços:
 
-; This will make it appear when you right click INSIDE a folder
-; The "Icon" line can be removed if you don't want the icon to appear
+```reg
+"Icon"="\"C:\\Users\\<SEU_USUARIO>\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\",0"
+```
 
-[HKEY_CLASSES_ROOT\Directory\Background\shell\vscode]
-@="Abrir Pasta com Vscode 😍"
-"Icon"="\"C:\\Users\\Rodolfo\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\",0"
+## 2. Faça backup das chaves existentes
 
-[HKEY_CLASSES_ROOT\Directory\Background\shell\vscode\command]
-@="\"C:\\Users\\Rodolfo\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\" \"%V\""
+Se alguma destas chaves já existir, exporte-a antes da importação. Pule o comando correspondente quando a chave ainda não existir.
 
-3) Clique no arquivo 2 vezes e execute:
+```powershell
+reg export "HKEY_CLASSES_ROOT\*\shell\Open with VS Code" "backup-arquivos.reg" /y
+reg export "HKEY_CLASSES_ROOT\Directory\shell\vscode" "backup-pastas.reg" /y
+reg export "HKEY_CLASSES_ROOT\Directory\Background\shell\vscode" "backup-fundo.reg" /y
+```
 
-4) Feito isso será exibido a opção de "Open Folder as VS Code" ao seu windows explorer:
+## 3. Importe o arquivo
 
-Pronto, tudo certo para usufruir.
+No PowerShell aberto na raiz deste repositório, execute:
+
+```powershell
+reg import "Files\vsCodeOpenFolder.reg"
+```
+
+Leia a confirmação do Windows antes de aceitar a alteração no Registro.
+
+## 4. Verifique as chaves
+
+Depois da importação, confirme que as três entradas existem:
+
+```powershell
+reg query "HKEY_CLASSES_ROOT\*\shell\Open with VS Code"
+reg query "HKEY_CLASSES_ROOT\Directory\shell\vscode"
+reg query "HKEY_CLASSES_ROOT\Directory\Background\shell\vscode"
+```
+
+O menu de contexto mostra **Abrir com VS Code** para arquivos e **Abrir pasta com VS Code** para pastas e para o fundo de uma pasta.
+
+Para remover as entradas, consulte os comandos `reg delete` no [README](README.md#como-desfazer).

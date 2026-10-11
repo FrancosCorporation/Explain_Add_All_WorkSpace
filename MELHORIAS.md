@@ -3,6 +3,12 @@
 > **Gerado por análise de código em 2026-10-05** · branch `master` · guia + `.reg` do Windows (documentação + script de registro)
 > Fatos verificados por leitura direta do repositório (`git ls-files`, inspeção do `.reg`, do guia e do README). Nenhum arquivo:linha foi inventado.
 
+## Estado da execução — 2026-10-11
+
+- `BUG-01`, `SEC-01`, `BUG-02`, `DOC-01` e `TEST-01` implementados: fonte canônica declarada, aspas/ícones alinhados, backup e consultas de verificação documentados.
+- `DEVOPS-01`: workflow de markdownlint configurado para README e guia; a CI ainda não foi executada.
+- Não importei o `.reg` no Windows. O commit local inclui o workflow; o push precisa do escopo OAuth `workflow`.
+
 ## 0. Como usar este documento
 
 - Cada item tem 6 campos: **Arquivo:**, **Evidência:**, **Impacto:**, **Mudança:**, **Aceite:** e **Verificação:** (com bloco `bash`).
@@ -18,7 +24,7 @@
 - `.reg` real tem o `command` com aspas internas corretas (`@="\"...Code.exe\" \"%1\""`), essencial para paths com espaços.
 - Licença MIT presente.
 
-**O que está quebrado / ausente:**
+**Achados no estado inicial da análise (tratados abaixo):**
 - **Divergência real entre guia e `.reg`:** rótulos diferentes (`😍` no guia, `:)` no `.reg`) — README reconhece (linha 66) mas não resolve (manutenção dupla).
 - **Dois padrões de `Icon` no mesmo arquivo:** no `.reg` real, linha 6 usa o path **sem** aspas internas, enquanto linhas 16 e 26 usam path **entre** aspas internas (`"\"...Code.exe\",0"`). O guia reproduz a mesma inconsistência (linha 12 vs linhas 22 e 32).
 - Passo a passo do guia (`Add_short_vscode_windows.md`, passo 3, linha 37) não menciona backup com `reg export` antes de importar (o README sim, na linha 46).
@@ -42,11 +48,11 @@
 **Arquivo:** `Files/vsCodeOpenFolder.reg`
 **Evidência:** As linhas de comando do `.reg` real: `Files/vsCodeOpenFolder.reg:9` → `@="\"C:\\Users\\Rodolfo\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\" \"%1\""`, `:19` (idêntico, `%1`) e `:29` → `@="\"...Code.exe\" \"%V\""`. O padrão atual está correto: executável e placeholder entre aspas internas, obrigatório porque o path contém espaços (`Microsoft VS Code`). O README instrui substituir o caminho (linha 35) mas não explica que as aspas internas não podem ser removidas.
 **Impacto:** Alto. Se um usuário editar o `.reg` e perder as aspas internas do executável, o comando falha silenciosamente ou aponta para inexistente quando o path tem espaços — exatamente o caso do path padrão (`C:\Users\Rodolfo\...`).
-**Mudança:** Documentar no README e no guia, junto ao passo de substituição do caminho, que o formato interno `\"Caminho\\Code.exe\" \"%1\"` é obrigatório e que as aspas internas não devem ser removidas; incluir exemplo de substituição já corrigido e testado.
+**Mudança:** Documentar no README e no guia, junto ao passo de substituição do caminho, que o formato interno `\"Caminho\\Code.exe\" \"%1\"` é obrigatório e que as aspas internas não devem ser removidas; incluir exemplo de substituição.
 **Aceite:** README e guia com aviso explícito sobre preservar as aspas internas do `command`, com exemplo correto de substituição.
 **Verificação:**
 ```bash
-grep -n '%1' Files/vsCodeOpenFolder.reg && grep -qi "aspas" README.md && echo "OK: aspas internas do command preservadas no .reg e documentadas no README"
+grep -n '%1' Files/vsCodeOpenFolder.reg && grep -qi "aspas" README.md && grep -qi "aspas" Add_short_vscode_windows.md && echo "OK: aspas internas documentadas"
 ```
 
 ## 4. Bugs e defeitos funcionais
@@ -56,11 +62,11 @@ grep -n '%1' Files/vsCodeOpenFolder.reg && grep -qi "aspas" README.md && echo "O
 **Arquivo:** `Add_short_vscode_windows.md` e `Files/vsCodeOpenFolder.reg`
 **Evidência:** No guia: `Add_short_vscode_windows.md:11` → `@="Abrir com Vscode 😍"` e `:21`/`:31` → `@="Abrir Pasta com Vscode 😍"`. No `.reg` real: `Files/vsCodeOpenFolder.reg:5` → `@="Abrir com Vscode :)"` e `:15`/`:25` → `@="Abrir Pasta com Vscode :)"`. O README já documenta a divergência em `README.md:66` ("O guia em markdown e o `.reg` divergem só no rótulo do menu (`😍` no guia, `:)` no arquivo)") — reconhecido, mas não resolvido.
 **Impacto:** Alto para manutenção. O guia manda criar o arquivo pelo Notepad com o trecho do guia, enquanto o repo distribui o `.reg` pronto — dois artefatos com conteúdo diferente sobre o mesmo nome de chave; qualquer edição futura em um deles dessincroniza o outro.
-**Mudança:** Escolher um rótulo canônico e alinhar guia e `.reg` (ou tornar o guia referenciar `Files/vsCodeOpenFolder.reg` como fonte única de verdade, deixando o trecho como "exemplo").
-**Aceite:** Trecho do guia e `.reg` com os mesmos valores de `@` nas 3 chaves (ou guia declarando a fonte canônica).
+**Mudança:** Declarar `Files/vsCodeOpenFolder.reg` como fonte única de verdade; o guia aponta para ele e não mantém uma cópia integral.
+**Aceite:** README e guia declaram a fonte canônica e apontam para o arquivo `.reg`.
 **Verificação:**
 ```bash
-diff <(grep -o '@="[^"]*"' Add_short_vscode_windows.md) <(grep -o '@="[^"]*"' Files/vsCodeOpenFolder.reg) && echo "OK: rotulos alinhados entre guia e .reg"
+grep -q 'Files/vsCodeOpenFolder.reg.*fonte canônica' README.md && grep -q 'Files/vsCodeOpenFolder.reg.*fonte canônica' Add_short_vscode_windows.md
 ```
 
 ### BUG-02 [P2] — Dois padrões de `Icon` no mesmo arquivo (path com e sem aspas internas)
@@ -69,7 +75,7 @@ diff <(grep -o '@="[^"]*"' Add_short_vscode_windows.md) <(grep -o '@="[^"]*"' Fi
 **Evidência:** No `.reg` real: `Files/vsCodeOpenFolder.reg:6` → `"Icon"="C:\\Users\\Rodolfo\\...\\Code.exe,0"` (path **sem** aspas internas), enquanto `:16` e `:26` → `"Icon"="\"C:\\Users\\Rodolfo\\...\\Code.exe\",0"` (path **entre** aspas internas). O guia reproduz a mesma divergência interna: `Add_short_vscode_windows.md:12` (sem aspas) vs `:22` e `:32` (com aspas). O `command` usa aspas corretamente; o problema é a inconsistência do `Icon` entre as chaves.
 **Impacto:** Médio. O ícone pode não renderizar em algumas versões do Explorer quando o path contém espaços e não está entre aspas; e quem copia um bloco do arquivo encontra dois formatos diferentes para a mesma finalidade.
 **Mudança:** Padronizar o valor de `Icon` nas 3 chaves do `.reg` (recomendado: path entre aspas internas, formato `"\"Caminho\\Code.exe\",0"`) e refletir o padrão no guia.
-**Aceite:** Todas as linhas `"Icon"=` do `.reg` e do guia com o mesmo padrão de aspas.
+**Aceite:** As três linhas `"Icon"=` do `.reg` usam o mesmo padrão de aspas, reproduzido no exemplo do guia.
 **Verificação:**
 ```bash
 test "$(grep -c '"Icon"="C:' Files/vsCodeOpenFolder.reg)" -eq 0 && echo "OK: padrao de Icon uniforme no .reg"
@@ -119,9 +125,9 @@ grep -q "reg export" Add_short_vscode_windows.md && echo "OK: backup documentado
 
 ## 8. Ordem de execução (waves)
 
-**Wave 1 (rápida):** BUG-01 (alinhar rótulos guia vs `.reg`) · DOC-01 (backup no passo a passo).
-**Wave 2:** SEC-01 (documentar invariante das aspas internas do `command`) · BUG-02 (padronizar `Icon`).
-**Wave 3 (opcional):** TEST-01 (smoke check `reg query`) · DEVOPS-01 (workflow de markdownlint).
+**Wave 1 (rápida):** BUG-01 (fonte canônica declarada) e DOC-01 (backup no passo a passo). **Concluída.**
+**Wave 2:** SEC-01 (aspas internas documentadas) e BUG-02 (padronizar `Icon`). **Concluída.**
+**Wave 3 (opcional):** TEST-01 (`reg query` documentado) e DEVOPS-01 (workflow de markdownlint). **Implementada; CI não executada.**
 
 ## 9. Fora de escopo / riscos
 
@@ -133,12 +139,12 @@ grep -q "reg export" Add_short_vscode_windows.md && echo "OK: backup documentado
 
 ## 10. Definição de pronto (DoD)
 
-- [ ] Rótulos do guia e do `.reg` alinhados (ou fonte canônica declarada) — BUG-01.
-- [ ] Aspas internas do `command` documentadas como invariante, com exemplo de path com espaços — SEC-01.
-- [ ] Valor de `Icon` uniforme nas 3 chaves do `.reg` e do guia — BUG-02.
-- [ ] Passo de backup (`reg export`) presente no guia antes do import — DOC-01.
-- [ ] Bloco de verificação pós-import (`reg query`) no README — TEST-01.
-- [ ] Workflow de markdownlint presente e passando — DEVOPS-01.
-- [ ] `python3 /tmp/validate.py Explain_Add_All_WorkSpace` retorna OK.
+- [x] Fonte canônica do `.reg` declarada no README e no guia — BUG-01.
+- [x] Aspas internas do `command` documentadas com exemplo de caminho com espaços — SEC-01.
+- [x] `Icon` uniforme nas três chaves e exemplo correspondente no guia — BUG-02.
+- [x] Passo de backup (`reg export`) presente no guia antes do import — DOC-01.
+- [x] Bloco de verificação pós-import (`reg query`) no README e no guia — TEST-01.
+- [x] Workflow de markdownlint criado para `README.md` e `Add_short_vscode_windows.md` — DEVOPS-01.
+- [ ] CI e `python3 /tmp/validate.py Explain_Add_All_WorkSpace` não foram executados nesta sessão.
 
 *Fim do plano. Gerado por leitura direta do código em 2026-10-05 — todos os fatos (arquivos, linhas, branch `master`) foram verificados no repositório; nenhum arquivo:linha foi inventado.*
